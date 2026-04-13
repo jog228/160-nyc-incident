@@ -1,0 +1,79 @@
+---
+title: "Clusters"
+output: html_notebook
+date: "2026-04-13"
+---
+
+Load data
+
+```{r}
+#load cleaned csv
+df <- read.csv("Rape_Data_cleaned.csv", header=TRUE)
+```
+
+Process
+```{r}
+#Preprocessing coordinates
+df$X_COORD_CD <- as.numeric(gsub(",", "", df$X_COORD_CD))
+df$Y_COORD_CD <- as.numeric(gsub(",", "", df$Y_COORD_CD))
+
+
+#Coordinate data frame with just coordinates
+cluster_vars <- c("X_COORD_CD", "Y_COORD_CD")
+coords <- df[,cluster_vars]
+```
+
+K Means Clustering for coordinates
+```{r}
+set.seed(42)
+
+wss <- sapply(2:15, function(k) {
+  kmeans(coords, centers = k, nstart = 25)$tot.withinss
+})
+
+plot(2:15, wss, type = "b", pch = 19,
+     xlab = "Number of Clusters (k)",
+     ylab = "Total Within-Cluster",
+     main = "Coordinates Elbow Plot for NYC Rape Data")
+```
+
+K Means Clustering with Lat/Long
+```{r}
+#Preprocessing latitude/longitude
+df$Latitude <- as.numeric(df$Latitude)
+df$Longitude <- as.numeric(df$Longitude)
+
+#Create lat/long df
+cluster_vars <- c("X_COORD_CD", "Y_COORD_CD")
+lat_long <- df[,cluster_vars]
+```
+
+Elbow Graph for Long and Lat Coordinates
+```{r}
+set.seed(42)
+
+wss <- sapply(2:15, function(k) {
+  kmeans(lat_long, centers = k, nstart = 25)$tot.withinss
+})
+
+plot(2:15, wss, type = "b", pch = 19,
+     xlab = "Number of Clusters (k)",
+     ylab = "Total Within-Cluster SS",
+     main = "Coordinates Elbow Plot for NYC Rape Data")
+```
+
+Create Clusters
+```{r}
+#choose k=8
+k_km  <- 8
+pclusters <- kmeans(coords, centers = k_km, nstart = 25)
+km_groups <- pclusters$cluster
+
+#Add attribute to data
+df$cluster <- pclusters$cluster
+table(km_groups) #quanitiy of each group
+```
+```{r}
+write.csv(df, "Rape_Data_clusters.csv", row.names = FALSE)
+```
+
