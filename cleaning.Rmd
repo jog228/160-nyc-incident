@@ -33,11 +33,23 @@ df$RPT_DT <- as.Date(df$RPT_DT, "%m/%d/%Y")
 ```{r}
 # create new variables
 df$DAY_OF_WEEK <- format(df$CMPLNT_FR_DT, "%A")
+#define order
+#define custom ordering
+df$DAY_OF_WEEK <- factor(df$DAY_OF_WEEK, 
+                  levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+
 df$HOUR <- as.integer(substr(df$CMPLNT_FR_TM, 1, 2))
 df$TIME_OF_DAY <- ifelse(df$HOUR >= 6 & df$HOUR < 12, "Morning",
                          ifelse(df$HOUR >= 12 & df$HOUR < 17, "Afternoon",
                                 ifelse(df$HOUR >= 17 & df$HOUR < 21, "Evening",
                                        "Night")))
+df$MONTH <- format(df$CMPLNT_FR_DT, "%m")
+df$SEASON <- ifelse(df$MONTH %in% c("12", "01", "02"), "Winter", 
+                    ifelse(df$MONTH %in% c("03", "04", "05"), "Spring",
+                    ifelse(df$MONTH %in% c("06", "07", "08"), "Summer",
+                    ifelse(df$MONTH %in% c("09", "10", "11"), "Fall", NA))))
+#order season
+df$SEASON <- factor(df$SEASON, levels = c("Winter", "Spring", "Summer", "Fall"))
 ```
 
 ```{r}
@@ -50,3 +62,5 @@ df$PREM_TYP_DESC[is.na(df$PREM_TYP_DESC)] <- "UNKNOWN"
 ```{r}
 write.csv(df, "Rape_Data_cleaned.csv", row.names = FALSE)
 ```
+
+

@@ -34,7 +34,7 @@ wss <- sapply(2:15, function(k) {
 plot(2:15, wss, type = "b", pch = 19,
      xlab = "Number of Clusters (k)",
      ylab = "Total Within-Cluster",
-     main = "Coordinates Elbow Plot for NYC Rape Data")
+     main = "X and Y Coordinates Elbow Plot for NYC Rape Data")
 ```
 
 K Means Clustering with Lat/Long
@@ -59,7 +59,7 @@ wss <- sapply(2:15, function(k) {
 plot(2:15, wss, type = "b", pch = 19,
      xlab = "Number of Clusters (k)",
      ylab = "Total Within-Cluster SS",
-     main = "Coordinates Elbow Plot for NYC Rape Data")
+     main = "Latitude and Lognitude Coordinates Elbow Plot for NYC Rape Data")
 ```
 
 Create Clusters
@@ -70,9 +70,15 @@ pclusters <- kmeans(coords, centers = k_km, nstart = 25)
 km_groups <- pclusters$cluster
 
 #Add attribute to data
-df$cluster <- pclusters$cluster
-table(km_groups) #quanitiy of each group
+df$CLUSTER <- pclusters$cluster
+table(km_groups) #quantity of each group
 ```
+```{r}
+#attribute to k cluster with frequency??
+
+```
+
+
 ```{r}
 write.csv(df, "Rape_Data_clusters.csv", row.names = FALSE)
 ```
