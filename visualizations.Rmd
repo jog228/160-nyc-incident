@@ -1,0 +1,89 @@
+---
+title: "Visualizations"
+output: html_notebook
+date: "2026-04-14"
+---
+
+
+```{r}
+#load data
+df <- read.csv("Rape_Data_clusters.csv", header=TRUE)
+```
+
+Time Analysis
+
+```{r}
+library(ggplot2)
+
+#graph for number of counts for hour of the day
+ggplot(df, aes(x=HOUR)) + geom_histogram(binwidth = 1, fill ="steelblue", color = "white") + labs(title = "Reported Rape Incidences Count by Hour in NYC", x = "Hour of the Day", y="Count")
+```
+Crime Count by Location 
+```{r}
+#graph for hourly crime count seperated by borough
+ggplot(df, aes(x=HOUR)) + geom_histogram(binwidth = 1, fill = "darkred") + facet_wrap(~BORO_NM) + labs(title = "Hourly Reported Rape Incidences by Borough", x="Hour", y="Count")
+```
+```{r}
+#graph for hourly crime count for k means cluster
+ggplot(df, aes(x=HOUR)) + geom_histogram(binwidth = 1, fill = "darkred") + facet_wrap(~CLUSTER) + labs(title ="Hourly Reported Rape Incidences by K-Means Cluster", x="Hour", y="Count")
+#hour in military time
+```
+Time of Day
+```{r}
+#graph for crime count for time of day
+ggplot(df, aes(x=TIME_OF_DAY)) + geom_bar(fill ="steelblue", color = "white") + labs(title = "Number of Reported Rape Incidences by Time of Day in NYC", x = "Time of Day", y="Count")
+
+```
+Location of Night Crimes 
+```{r}
+#graph for crime count for time of day for each borough
+ggplot(df, aes(x=TIME_OF_DAY)) + geom_bar(fill = "steelblue") + facet_wrap(~BORO_NM) + labs(title ="Rape Incidences Count by Time of Day per NYC Borough", x="Time of Day", y="Count")
+```
+
+
+```{r}
+#graph for night crime coordinates
+ggplot(df[df$TIME_OF_DAY == "Night",], aes(x=X_COORD_CD, y= Y_COORD_CD)) + geom_point(alpha = 0.3, color = "red") + labs(title = "Coordinate Location of Reported Night Rape Incidences in NYC", x="X Coordinate", y="Y Coordinate")
+```
+
+```{r}
+#graph for premise Type for Nightly Crime
+
+ggplot(df[df$TIME_OF_DAY == "Night",], aes(x=PREM_TYP_DESC)) + geom_bar() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + labs(title = "Night Rape Count by Premise Type", x="Premise Type", y="Count")
+```
+Night and Day Crime Count by Borough 
+```{r}
+#graph to compare crime count for times of day
+ggplot(df, aes(x= BORO_NM, fill = TIME_OF_DAY )) + geom_bar(position = "dodge") + labs(title = "Rape Report Count by Time of Day", x="Borough", y="Number of Incidences", fill = "Time Period") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme_minimal()
+```
+
+
+Day of Week Analysis 
+```{r}
+
+#graph for crime count per day of week
+ggplot(df, aes(x=DAY_OF_WEEK)) + geom_bar() + labs(title = "Number of Reported Rape Incidences by Day of Week in NYC", x="Day of Week", y="Count")
+```
+Week by Borough
+```{r}
+#Graph for day of week crime count by borough
+ggplot(df, aes(x=DAY_OF_WEEK)) + geom_bar(fill = "steelblue") + facet_wrap(~BORO_NM) + labs(title ="Rape Incidences Count by Day of Week per NYC Borough", x="Day of Week", y="Count") + theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
+```
+```{r}
+ggplot(df, aes(x=DAY_OF_WEEK)) + geom_bar(fill = "darkred") + facet_wrap(~CLUSTER) + labs(title ="Rape Incidences Count by Day of Week per Defined Cluster in NYC", x="Day of Week", y="Count") + theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
+```
+
+Seasonal Analysis
+```{r}
+#graph for crime count per season
+df$SEASON <- factor(df$SEASON, levels = c("Winter", "Spring", "Summer", "Fall"))
+ggplot(df, aes(x=SEASON)) + geom_bar() + labs(title = "Number of Reported Rape Incidences by Season in NYC", x="Season", y="Count")
+```
+```{r}
+#Graph for crime count by season per borough
+ggplot(df, aes(x=SEASON)) + geom_bar(fill = "steelblue") + facet_wrap(~BORO_NM) + labs(title ="Rape Incidences Count by Season per NYC Borough", x="Season", y="Count") + theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
+```
+```{r}
+#Graph for number of crimes in summer by borough
+ggplot(df[df$SEASON == "Summer",], aes(x=BORO_NM)) + geom_bar() + labs(title ="Summer Rape Incidences Count per NYC Borough", x="Borough", y="Count") 
+```
