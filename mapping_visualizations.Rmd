@@ -1,0 +1,75 @@
+---
+title: "Mapping"
+output: html_notebook
+date: "2026-04-13"
+---
+
+Read Shapefile
+```{r}
+#load data
+library(sf)
+shapefile <- st_read("~/Downloads/tl_2025_us_county/tl_2025_us_county.shp") #from US CENSUS
+#extract NY -> FIBS=36
+ny_data <- shapefile[shapefile$STATEFP == "36",]
+nrow(ny_data)
+
+#extract NYC
+  # Bronx = 36005
+  # Brooklyn = 36047
+  # Manhattan = 36061
+  # Queens = 36081
+  # Staten Island = 36085
+
+nyc <- ny_data[ny_data$GEOID %in% c("36005","36047","36061","36081","36085"), ]
+
+```
+Convert Lat/Long Points
+```{r}
+#load NYC Rape data
+rape_data <- read.csv("Rape_Data_clusters.csv", header=TRUE)
+rape_points <- st_as_sf(rape_data, coords = c("Longitude","Latitude"), crs = 4326) #crs = 4326 - GPS Location
+rape_points <- st_transform(rape_points, st_crs(nyc))
+```
+
+NYC Map Outline
+```{r}
+#change county name -> borough name
+nyc$BOROUGH[nyc$GEOID == "36005"] <- "Bronx"
+nyc$BOROUGH[nyc$GEOID == "36047"] <- "Brooklyn"
+nyc$BOROUGH[nyc$GEOID == "36061"] <- "Manhattan"
+nyc$BOROUGH[nyc$GEOID == "36081"] <- "Queens"
+nyc$BOROUGH[nyc$GEOID == "36085"] <- "Staten Island"
+
+map_outline <- ggplot(data=nyc) + geom_sf(fill = "lightgrey", color = "black") + geom_sf_label(aes(label = BOROUGH))
+map_outline
+```
+Plot Points
+```{r}
+summary(rape_data$Longitude)
+summary(rape_data$Latitude)
+
+#geometry of ggplot
+plot(st_geometry(nyc), col = "grey")
+plot(st_geometry(rape_points), add = TRUE, col = "red", pch = 16, cex = 0.5)
+
+```
+```{r}
+#map of coordinates of reported rape incidences
+map_points <- map_outline+ geom_sf(data = rape_points, color="red", alpha=0.4) + labs(title="Location of Reported Rape Incidences in NYC")
+map_points
+```
+
+
+Heatmap Density
+```{r}
+library(ggplot2)
+#density map outline
+density_map <- ggplot() + geom_sf(data=nyc, fill="white", color = "black") + stat_density_2d(data=rape_data, aes(x=Longitude, y=Latitude), alpha =0.5) + scale_fill_gradient(low = "lightblue", high = "darkblue")
+density_map
+
+#filled gradient density map
+density_map <- ggplot() + geom_sf(data=nyc, fill="white", color = "black") + stat_density_2d(data=rape_data, aes(x=Longitude, y=Latitude, fill = after_stat(level)), geom="polygon", alpha =0.5) + scale_fill_gradient(low = "lightgoldenrod1", high = "darkred", name="Incidences Density") + labs(title="Reported Rape Density in NYC") 
+density_map
+```
+
+
