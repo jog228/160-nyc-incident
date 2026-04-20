@@ -1,0 +1,134 @@
+---
+title: "Behavioral Pattern Clustering"
+output: html_notebook
+date: "2026-04-20"
+---
+
+Load data
+
+```{r}
+#load cleaned csv
+df <- read.csv("Rape_Data_cleaned.csv", header=TRUE)
+head(df)
+
+```
+
+Process
+```{r}
+#Preprocessing coordinates
+df$X_COORD_CD <- as.numeric(gsub(",", "", df$X_COORD_CD))
+df$Y_COORD_CD <- as.numeric(gsub(",", "", df$Y_COORD_CD))
+
+
+#Coordinate data frame with just coordinates
+cluster_vars <- c("X_COORD_CD", "Y_COORD_CD")
+coords <- df[,cluster_vars]
+```
+
+Feature Engineering 
+```{r}
+#create binary attributes
+
+#df$hour <- as.numeric(df$hour)
+df$is_night <- ifelse(df$TIME_OF_DAY == "Night", 1,0)
+df$is_inside <- ifelse(df$LOC_OF_OCCUR_DESC == "INSIDE", 1, 0)
+df$is_completed <- ifelse(df$CRM_ATPT_CPTD_CD == "COMPLETED", 1, 0) 
+df$is_weekend <- ifelse(df$DAY_OF_WEEK == "Saturday" | df$DAY_OF_WEEK == "Sunday", 1, 0)
+#residential, public???
+
+
+#treat precinct as a category 
+#df$ADDR_PCT_CD <- as.factor(df$ADDR_PCT_CD)
+
+
+```
+
+```{r}
+#library(dplyr)
+#create separate df with time, location, and completion status per precinct
+precinct_df <- aggregate(cbind(is_night, is_inside, is_completed) ~ ADDR_PCT_CD, data = df, FUN=mean, na.rm=TRUE)
+head(precinct_df)
+str(precinct_df)
+
+#scale data so numbers are equal distance 
+colnames(precinct_df) <- c("ADDR_PCT_CD", "is_night", "is_inside", "is_completed")
+scaled_df <- scale(precinct_df[,-1])
+
+```
+
+Elbow Graph for Precinct Clusters
+
+```{r}
+set.seed(42)
+
+wss <- sapply(2:15, function(k) {
+  kmeans(scaled_df, centers = k, nstart = 25)$tot.withinss
+})
+
+plot(2:15, wss, type = "b", pch = 19,
+     xlab = "Number of Clusters (k)",
+     ylab = "Total Within-Cluster Sum of Squares (WSS)",
+     main = "Elbow Plot for Optimal K (NYC Rape Incident Behavioral Patterns)")
+
+# Choose optimal K at bend -> k=4
+```
+
+
+```{r}
+# create clusters
+k_km  <- 4
+kmeans_result <- kmeans(scaled_df, centers = k_km, nstart = 25)
+km_groups <- kmeans_result$cluster
+
+#Add attribute to data
+precinct_df$cluster <- kmeans_result$cluster
+table(precinct_df$cluster) #quantity of each group
+```
+Understand Clusters
+```{r}
+#cluster information
+aggregate(precinct_df[, c("is_night", "is_inside", "is_completed")], by= list(cluster=precinct_df$cluster), mean)
+```
+Cluster Summary
+
+Cluster 1: strong nighttime and indoor pattern 
+Cluster 2: mostly indoor, mixed timing (day/evening/night)
+Cluster 3: no nighttime incidents, no inside classification, all completed cases
+Cluster 4: very strong indoor pattern, lower completion rate, mixed timing 
+
+Most incidents are INSIDE (0.82-0.94) -> nighttime varies by cluster
+HIGH overall completion rate (>0.92)
+
+Visualize Clusters
+```{r}
+#pca visualization
+library(ggplot2)
+
+princ <- prcomp(scale(precinct_df[,c("is_night", "is_inside", "is_completed")]))
+pca <- as.data.frame(princ$x[,1:2])
+pca$cluster <- as.factor(precinct_df$cluster)
+
+ggplot(pca, aes(x=PC1, y= PC2, color = cluster)) + 
+  geom_point(size=3, alpha=0.8) + 
+  labs(title = "K-means Clusters of NYC Incident Patterns (PCA Projection)",
+       x= "Principal Component 1", y = "Principal Component 2")
+
+```
+```{r}
+#inside frequency by cluster 
+avg_inside <- aggregate(is_inside ~ cluster, data = precinct_df, mean)
+
+ggplot(avg_inside, aes(x=factor(cluster), y=is_inside)) + geom_col(fill="navy") + labs(title = "Average Indoor Rate by Cluster", x="Cluster", y="Proportion Inside") 
+
+
+```
+```{r}
+cluster_counts <- as.data.frame(table(precinct_df$cluster))
+colnames(cluster_counts) <- c("cluster", "count")
+
+ggplot(cluster_counts, aes(x=factor(cluster), y=count)) + geom_col(fill="darkred") + labs(title = "Number of Precincts per Cluster", x="Cluster", y="Count") 
+```
+```{r}
+write.csv(df, "Rape_Data_Behavioral_Clusters.csv", row.names = FALSE)
+```
+
