@@ -72,4 +72,24 @@ density_map <- ggplot() + geom_sf(data=nyc, fill="white", color = "black") + sta
 density_map
 ```
 
+Density Map by Borough
+
+```{r}
+#change borough names to all caps
+nyc$BOROUGH <- toupper(nyc$BOROUGH)
+#count number of occurrences
+counts <- as.data.frame(table(rape_data$BORO_NM))
+names(counts) <- c("BORO_NM", "incidences")
+#merge data
+nyc_counts <- merge(nyc, counts, by.x="BOROUGH", by.y="BORO_NM")
+
+#graph showing color gradient for borough
+ggplot(nyc_counts) + geom_sf(aes(fill=incidences), color="white") + geom_sf_label(aes(label = BOROUGH))+ scale_fill_gradient(low = "lightgoldenrod1", high = "darkred", name="Incidents") + labs(x="Longitude", y="Latitude",title="Reported Rape Density by NYC Borough")
+```
+Density Map by Geographical K-Means Cluster
+```{r}
+#geographical location of Clusters
+ggplot() + geom_sf(data=nyc, fill="white", color="black") + geom_point(data = rape_data, aes(x=Longitude, y=Latitude, color=CLUSTER), alpha=0.5) + labs(title="Georgaphical of K-Means Location Clusters")
+```
+
 

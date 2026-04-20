@@ -132,3 +132,52 @@ ggplot(cluster_counts, aes(x=factor(cluster), y=count)) + geom_col(fill="darkred
 write.csv(df, "Rape_Data_Behavioral_Clusters.csv", row.names = FALSE)
 ```
 
+Geographical Mapping
+```{r}
+#load data
+library(sf)
+# read shapefile
+shapefile <- st_read("~/Downloads/tl_2025_us_county/tl_2025_us_county.shp") #from US CENSUS
+#extract NY -> FIBS=36
+ny_data <- shapefile[shapefile$STATEFP == "36",]
+nrow(ny_data)
+
+#extract NYC
+  # Bronx = 36005
+  # Brooklyn = 36047
+  # Manhattan = 36061
+  # Queens = 36081
+  # Staten Island = 36085
+
+nyc <- ny_data[ny_data$GEOID %in% c("36005","36047","36061","36081","36085"), ]
+
+```
+Convert Lat/Long Points
+```{r}
+#load NYC Rape data
+rape_data <- read.csv("Rape_Data_clusters.csv", header=TRUE)
+rape_points <- st_as_sf(rape_data, coords = c("Longitude","Latitude"), crs = 4326) #crs = 4326 - GPS Location
+rape_points <- st_transform(rape_points, st_crs(nyc))
+```
+
+NYC Map Outline
+```{r}
+#change county name -> borough name
+nyc$BOROUGH[nyc$GEOID == "36005"] <- "Bronx"
+nyc$BOROUGH[nyc$GEOID == "36047"] <- "Brooklyn"
+nyc$BOROUGH[nyc$GEOID == "36061"] <- "Manhattan"
+nyc$BOROUGH[nyc$GEOID == "36081"] <- "Queens"
+nyc$BOROUGH[nyc$GEOID == "36085"] <- "Staten Island"
+
+map_outline <- ggplot(data=nyc) + geom_sf(fill = "lightgrey", color = "black") + geom_sf_label(aes(label = BOROUGH))
+
+rape_points <- merge(rape_points,
+                   precinct_df[, c("ADDR_PCT_CD", "cluster")],
+                   by = "ADDR_PCT_CD",
+                   all.x = TRUE)
+
+ggplot() + geom_sf(data=nyc, fill="white", color="black") + geom_sf(data = rape_points, aes(color=factor(cluster)), alpha=0.5) +
+  scale_color_manual(values = c("1" = "salmon2", "2" = "forestgreen", "3" = "turquoise3", "4" ="plum"))+
+  labs(title="Georgaphical of K-Means Location Clusters", color="Cluster")
+```
+
