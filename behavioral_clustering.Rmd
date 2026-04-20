@@ -93,7 +93,7 @@ Cluster Summary
 
 Cluster 1: strong nighttime and indoor pattern 
 Cluster 2: mostly indoor, mixed timing (day/evening/night)
-Cluster 3: no nighttime incidents, no inside classification, all completed cases
+Cluster 3: no nighttime incidents, no inside classification, all completed cases *extremely rare case
 Cluster 4: very strong indoor pattern, lower completion rate, mixed timing 
 
 Most incidents are INSIDE (0.82-0.94) -> nighttime varies by cluster
@@ -178,6 +178,6 @@ rape_points <- merge(rape_points,
 
 ggplot() + geom_sf(data=nyc, fill="white", color="black") + geom_sf(data = rape_points, aes(color=factor(cluster)), alpha=0.5) +
   scale_color_manual(values = c("1" = "salmon2", "2" = "forestgreen", "3" = "turquoise3", "4" ="plum"))+
-  labs(title="Georgaphical of K-Means Location Clusters", color="Cluster")
+  labs(title="Georgaphical Location of Precinct Behavioral Profiles Clusters", color="Cluster")
 ```
 

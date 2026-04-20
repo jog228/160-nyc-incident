@@ -87,3 +87,4 @@ ggplot(df, aes(x=SEASON)) + geom_bar(fill = "steelblue") + facet_wrap(~BORO_NM) 
 #Graph for number of crimes in summer by borough
 ggplot(df[df$SEASON == "Summer",], aes(x=BORO_NM)) + geom_bar() + labs(title ="Summer Rape Incidences Count per NYC Borough", x="Borough", y="Count") 
 ```
+Coordinates for brorough and cluster -> blox plot for outliers
