@@ -1,0 +1,35 @@
+---
+title: "Regression Analysis"
+output: html_document
+date: "2026-04-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+## Load Data
+```{r}
+data <- read.csv("Rape_Data_clusters.csv")
+data$CLUSTER <- as.factor(data$CLUSTER)
+
+library(dplyr)
+
+data_counts <- data %>%
+  group_by(CLUSTER, BORO_NM, SEASON, TIME_OF_DAY) %>%
+  summarise(count = n(), .groups = "drop")
+
+head(data_counts)
+```
+
+## Regression Model
+```{r}
+model <- lm(count ~ CLUSTER + BORO_NM + SEASON + TIME_OF_DAY, data = data_counts)
+summary(model)
+```
+
+## Interpretation
+
+The regression results show that cluster membership is a significant predictor of incident counts. Most clusters have lower counts than the baseline cluster, indicating meaningful differences between behavioral groupings. Time of day is the strongest effect with nighttime incidents significantly higher. Boroughs have some influence, while season is not that significant. The model explains approximately 70% of the variation in incident frequency.
