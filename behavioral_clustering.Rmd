@@ -129,6 +129,11 @@ colnames(cluster_counts) <- c("cluster", "count")
 ggplot(cluster_counts, aes(x=factor(cluster), y=count)) + geom_col(fill="darkred") + labs(title = "Number of Precincts per Cluster", x="Cluster", y="Count") 
 ```
 ```{r}
+```
+
+
+```{r}
+df <- merge(df, precinct_df[, c("ADDR_PCT_CD", "cluster")], by = "ADDR_PCT_CD", all.x = TRUE)
 write.csv(df, "Rape_Data_Behavioral_Clusters.csv", row.names = FALSE)
 ```
 

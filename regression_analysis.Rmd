@@ -12,22 +12,23 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Load Data
 ```{r}
-data <- read.csv("Rape_Data_clusters.csv")
-data$CLUSTER <- as.factor(data$CLUSTER)
-
-library(dplyr)
-
-data_counts <- data %>%
-  group_by(CLUSTER, BORO_NM, SEASON, TIME_OF_DAY) %>%
-  summarise(count = n(), .groups = "drop")
-
+data <- read.csv("Rape_Data_Behavioral_Clusters.csv")
+data$cluster <- as.factor(data$cluster)
+data_counts <- as.data.frame(table(data$cluster, data$SEASON, data$DAY_OF_WEEK))
+names(data_counts) <- c("cluster", "SEASON", "DAY_OF_WEEK", "count")
+data_counts <- data_counts[data_counts$count > 0, ]
 head(data_counts)
 ```
 
 ## Regression Model
 ```{r}
-model <- lm(count ~ CLUSTER + BORO_NM + SEASON + TIME_OF_DAY, data = data_counts)
+model <- lm(log(count) ~ cluster + SEASON + DAY_OF_WEEK, data = data_counts)
 summary(model)
+```
+
+```{r}
+plot(model, which = 1)
+plot(model, which = 2)
 ```
 
 ## Interpretation
